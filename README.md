@@ -1,97 +1,118 @@
-# mern-ecommerce
+# MERN E-Commerce Platform
 
-> Frontend-> Vite JS (React JS)
+A full-stack e-commerce web application built using the MERN stack, featuring user authentication, product management, and secure checkout functionality.
 
-> Backend-> Node JS & Express JS
+## 🚀 Tech Stack
 
-> Database-> MongoDB
+* **Frontend:** React (Vite)
+* **Backend:** Node.js, Express.js
+* **Database:** MongoDB
 
-## Installation process
+---
 
-1. #### clone the repo using this command
-   ```bash
-   git clone https://github.com/ashraf-kabir/mern-ecommerce.git
-   ```
-2. #### install npm packages
-   1. install backend packages
-   ```bash
-   cd mern-ecommerce
-   npm install
-   ```
-   2. install frontend packages
-   ```bash
-   cd frontend
-   npm install
-   ```
-3. go to the parent folder of mern-ecommerce & create .env for connection, JWT_SECRET, BRAINTREE_MERCHANT_ID, BRAINTREE_PUBLIC_KEY and BRAINTREE_PRIVATE_KEY.
+## 📦 Features
 
-   ```bash
-   cd mern-ecommerce
-   sudo nano .env
-   ```
+### User Features
 
-   (ctrl+x to save & nano follow instruction there)
+* Browse all products
+* View detailed product pages
+* Search and filter products by category and price
+* Add items to cart and checkout
+* User authentication (Sign up / Login)
 
-   ##### sample code for backend .env
+### Admin Features
 
-   ```env
-   MONGODB_URI=YOUR_MONGODB_URI
-   JWT_SECRET=YOUR_JWT_SECRET
-   BRAINTREE_MERCHANT_ID=YOUR_BRAINTREE_MERCHANT_ID
-   BRAINTREE_PUBLIC_KEY=YOUR_BRAINTREE_PUBLIC_KEY
-   BRAINTREE_PRIVATE_KEY=YOUR_BRAINTREE_PRIVATE_KEY
-   ```
+* Create, update, and delete products
+* Manage product categories
+* View and manage orders
+* Update order status (Processing, Shipped, Delivered)
 
-4. Frontend config.js
+---
 
-   ```bash
-   cd mern-ecommerce/frontend
-   sudo nano config.js
-   ```
+## ⚙️ Setup Instructions
 
-   ##### sample code for frontend config.js
+### 1. Clone the repository
 
-   ```javascript
-   export const API = 'http://localhost:5000/api';
-   ```
+```bash
+git clone <your-repo-url>
+cd mern-ecommerce
+```
 
-   ##### Instructions:
+### 2. Install dependencies
 
-   1. for mongodb atlas database creation follow this tutorial->https://www.youtube.com/watch?v=KKyag6t98g8
-   2. you can use any random string as JWTSECRET
-   3. if your backend server is on a different port or domain, update the API URL in config.js accordingly
-   4. #### note: add .env on .gitignore
-   5. for server deployment use secrets directly
+#### Backend
 
-5. <b>deploy this project</b> on your local server by using this command
+```bash
+npm install
+```
 
-   ```bash
-   cd mern-ecommerce
-   npm run dev
-   ```
+#### Frontend
 
-   #### note: both backend & frontend server will start at once with the above command.
+```bash
+cd frontend
+npm install
+```
 
-6. #### Database Structure: (Schema)
-   1. categories: \_id, name, createdAt, updatedAt;
-   2. orders: \_id, status, products (Array), transaction_id, amount, address, user (Object), createdAt, updatedAt
-   3. products: \_id, photo (Object), sold, name, description, price, category, shipping, quantity, createdAt, updatedAt
-   4. users: \_id, role, history (Array), name, email, salt, hashed_password, createdAt, updatedAt
+---
 
-### App Description:
+### 3. Environment Configuration
 
-    1. user can view all products
-    2. user can view single product
-    3. user can search products and view products by category and price range
-    4. user can add to cart checkout products using credit card info
-    5. user can register & sign in
-    6. admin can create, edit, update & delete products
-    7. admin can create categories
-    8. admin can view ordered products
-    9. admin can change the status of a product (processing, shipped, delivered, etc.)
-    10. FRONTEND URL: http://localhost:5173/
-    11. Project demo will be added soon...
+Create a `.env` file in the root directory:
 
+```env
+MONGODB_URI=your_mongodb_uri
+JWT_SECRET=your_secret_key
+BRAINTREE_MERCHANT_ID=your_id
+BRAINTREE_PUBLIC_KEY=your_key
+BRAINTREE_PRIVATE_KEY=your_key
+```
 
-1. <b>Deployed on: (No longer available due to heroku free dyno plan has deprecated)</br> https://ecommerce-ak.herokuapp.com/
-2. raise a star to support me
+---
+
+### 4. Frontend Configuration
+
+Update API endpoint in:
+
+```bash
+frontend/config.js
+```
+
+```javascript
+export const API = "http://localhost:5000/api";
+```
+
+---
+
+### 5. Run the Application
+
+```bash
+npm run dev
+```
+
+---
+
+## 🗂 Database Schema Overview
+
+* **Users:** authentication and profile data
+* **Products:** product details, pricing, inventory
+* **Categories:** product grouping
+* **Orders:** transaction and order history
+
+---
+
+## 📌 Notes
+
+* Ensure `.env` is added to `.gitignore`
+* Update API URL if deploying backend separately
+* Use secure environment variables in production
+
+---
+
+## 💡 Future Improvements
+
+* Payment gateway enhancements
+* UI/UX improvements
+* Performance optimization
+* Deployment and CI/CD integration
+
+---
