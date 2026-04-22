@@ -1,16 +1,36 @@
-import { API } from '../config';
-import queryString from 'query-string';
+// ==========================================
+// core/apiCore.js - Frontend API Services
+// ==========================================
+// This file contains all the functions used by the frontend to communicate with the backend API
+// for core features like fetching products, categories, and processing payments.
 
+import { API } from '../config'; // Base URL for the backend API (e.g., http://localhost:8000/api)
+import queryString from 'query-string'; // Utility to convert objects into URL query strings
+
+// ==========================================
+// Fetch Products (By Arrival or Sell)
+// ==========================================
+/**
+ * @desc    Fetches a list of products from the backend. 
+ *          Used on the Home page to display "New Arrivals" and "Best Sellers".
+ * @param   {string} sortBy - The field to sort by (e.g., 'sold', 'createdAt')
+ */
 export const getProducts = (sortBy) => {
   return fetch(`${API}/products?sortBy=${sortBy}&order=desc&limit=6`, {
     method: 'GET',
   })
     .then((response) => {
-      return response.json();
+      return response.json(); // Convert raw response to JSON
     })
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Fetch All Categories
+// ==========================================
+/**
+ * @desc    Fetches all available categories. Used in the Shop sidebar for filtering.
+ */
 export const getCategories = () => {
   return fetch(`${API}/categories`, {
     method: 'GET',
@@ -21,6 +41,15 @@ export const getCategories = () => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Fetch Filtered Products (Shop Page)
+// ==========================================
+/**
+ * @desc    Sends selected category and price filters to the backend to get matching products.
+ * @param   {number} skip - Number of products to skip (used for "Load More" pagination)
+ * @param   {number} limit - Maximum number of products to return
+ * @param   {object} filters - Contains selected categories and price range
+ */
 export const getFilteredProducts = (skip, limit, filters = {}) => {
   const data = {
     limit,
@@ -28,12 +57,12 @@ export const getFilteredProducts = (skip, limit, filters = {}) => {
     filters,
   };
   return fetch(`${API}/products/by/search`, {
-    method: 'POST',
+    method: 'POST', // POST because we are sending a complex filter object in the body
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(data), // Convert JS object to JSON string for the request body
   })
     .then((response) => {
       return response.json();
@@ -43,8 +72,15 @@ export const getFilteredProducts = (skip, limit, filters = {}) => {
     });
 };
 
+// ==========================================
+// Global Search
+// ==========================================
+/**
+ * @desc    Fetches products based on the user's input in the top search bar.
+ * @param   {object} params - Search parameters (e.g., { search: 'React', category: 'All' })
+ */
 export const list = (params) => {
-  const query = queryString.stringify(params);
+  const query = queryString.stringify(params); // Converts { search: 'book' } into "?search=book"
   console.log('query', query);
   return fetch(`${API}/products/search?${query}`, {
     method: 'GET',
@@ -55,6 +91,12 @@ export const list = (params) => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Fetch Single Product
+// ==========================================
+/**
+ * @desc    Fetches details for a single product to display on the Product details page.
+ */
 export const read = (productId) => {
   return fetch(`${API}/product/${productId}`, {
     method: 'GET',
@@ -65,6 +107,12 @@ export const read = (productId) => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Fetch Related Products
+// ==========================================
+/**
+ * @desc    Fetches products in the same category as the given product ID.
+ */
 export const listRelated = (productId) => {
   return fetch(`${API}/products/related/${productId}`, {
     method: 'GET',
@@ -75,13 +123,20 @@ export const listRelated = (productId) => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Braintree: Get Client Token
+// ==========================================
+/**
+ * @desc    Requests a unique client token from Braintree to initialize the Drop-in UI.
+ *          Requires the user to be logged in (sends JWT token).
+ */
 export const getBraintreeClientToken = (userId, token) => {
   return fetch(`${API}/braintree/getToken/${userId}`, {
     method: 'GET',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // Pass the JWT for authentication
     },
   })
     .then((response) => {
@@ -90,6 +145,13 @@ export const getBraintreeClientToken = (userId, token) => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Braintree: Process Payment
+// ==========================================
+/**
+ * @desc    Sends the payment nonce (generated by Braintree Drop-in) and the total amount
+ *          to the backend to execute the charge.
+ */
 export const processPayment = (userId, token, paymentData) => {
   return fetch(`${API}/braintree/payment/${userId}`, {
     method: 'POST',
@@ -98,7 +160,7 @@ export const processPayment = (userId, token, paymentData) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(paymentData),
+    body: JSON.stringify(paymentData), // Contains { paymentMethodNonce: '...', amount: 50.00 }
   })
     .then((response) => {
       return response.json();
@@ -106,6 +168,13 @@ export const processPayment = (userId, token, paymentData) => {
     .catch((err) => console.log(err));
 };
 
+// ==========================================
+// Create Order
+// ==========================================
+/**
+ * @desc    After successful payment, this sends the order details (cart items, address, tx ID)
+ *          to the backend to be saved in the database.
+ */
 export const createOrder = (userId, token, createOrderData) => {
   return fetch(`${API}/order/create/${userId}`, {
     method: 'POST',

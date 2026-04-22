@@ -1,8 +1,16 @@
+// ==========================================
+// core/Menu.jsx - Navigation Bar Component
+// ==========================================
+// This is the global navigation bar (AppBar). It handles routing, displaying the cart item count,
+// conditional rendering based on user authentication status (Guest vs User vs Admin), 
+// and provides a responsive hamburger menu for mobile devices.
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signout, isAuthenticated } from '../auth';
-import { itemTotal } from './cartHelpers';
+import { signout, isAuthenticated } from '../auth'; // Auth helpers to check login status and process logout
+import { itemTotal } from './cartHelpers'; // Helper to get the total number of items in the cart
 
+// Material UI Components
 import {
   AppBar,
   Toolbar,
@@ -19,6 +27,8 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+
+// Material UI Icons
 import {
   ShoppingCart,
   Home,
@@ -32,14 +42,18 @@ import {
 } from '@mui/icons-material';
 
 const MaterialAppBar = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook to programmatically navigate the user
   const theme = useTheme();
+  // Check if screen size is 'md' (medium/tablet) or smaller
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // State to manage the open/close status of the mobile hamburger menu
   const [mobileAnchorEl, setMobileAnchorEl] = React.useState(null);
   const currentPath = window.location.pathname;
 
   const isMobileMenuOpen = Boolean(mobileAnchorEl);
 
+  // Handlers for mobile menu
   const handleMobileMenuOpen = (event) => {
     setMobileAnchorEl(event.currentTarget);
   };
@@ -48,16 +62,25 @@ const MaterialAppBar = () => {
     setMobileAnchorEl(null);
   };
 
+  // ==========================================
+  // Signout Handler
+  // ==========================================
   const handleSignout = () => {
+    // Calls the signout helper (which clears localstorage and makes backend API call)
     signout(() => {
-      navigate('/');
+      navigate('/'); // Redirect to home page after successful signout
     });
-    handleMobileMenuClose();
+    handleMobileMenuClose(); // Close mobile menu if it was open
   };
 
+  // Helper to determine if a link is currently active (used for styling)
   const isActive = (path) => currentPath === path;
 
-  // Navigation items data
+  // ==========================================
+  // Navigation Configuration
+  // ==========================================
+  // Array defining all possible navigation links. 
+  // The 'show' property uses logic to determine if the link should be visible.
   const navItems = [
     { path: '/', label: 'Home', icon: <Home />, show: true },
     { path: '/shop', label: 'Shop', icon: <Storefront />, show: true },
@@ -65,6 +88,7 @@ const MaterialAppBar = () => {
       path: '/cart',
       label: 'Cart',
       icon: (
+        // Badge displays the little red circle with the number of items in the cart
         <Badge badgeContent={itemTotal()} color='error'>
           <ShoppingCart />
         </Badge>
@@ -75,28 +99,35 @@ const MaterialAppBar = () => {
       path: '/user/dashboard',
       label: 'Dashboard',
       icon: <Dashboard />,
+      // Show ONLY if authenticated AND user role is 0 (standard user)
       show: isAuthenticated() && isAuthenticated().user.role === 0,
     },
     {
       path: '/admin/dashboard',
       label: 'Dashboard',
       icon: <Dashboard />,
+      // Show ONLY if authenticated AND user role is 1 (admin)
       show: isAuthenticated() && isAuthenticated().user.role === 1,
     },
     {
       path: '/signin',
       label: 'Sign In',
       icon: <AccountCircle />,
+      // Show ONLY if NOT authenticated
       show: !isAuthenticated(),
     },
     {
       path: '/signup',
       label: 'Sign Up',
       icon: <PersonAdd />,
+      // Show ONLY if NOT authenticated
       show: !isAuthenticated(),
     },
   ];
 
+  // ==========================================
+  // Render Desktop Navigation
+  // ==========================================
   const renderDesktopNav = () => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       {navItems.map(
@@ -104,7 +135,7 @@ const MaterialAppBar = () => {
           item.show && (
             <Button
               key={item.path}
-              component={Link}
+              component={Link} // Use React Router's Link for client-side routing
               to={item.path}
               startIcon={item.icon}
               sx={{
@@ -122,6 +153,7 @@ const MaterialAppBar = () => {
             </Button>
           )
       )}
+      {/* Explicit Sign Out Button for authenticated users */}
       {isAuthenticated() && (
         <Button
           onClick={handleSignout}
@@ -139,6 +171,9 @@ const MaterialAppBar = () => {
     </Box>
   );
 
+  // ==========================================
+  // Render Mobile Navigation Menu (Hamburger)
+  // ==========================================
   const renderMobileMenu = () => (
     <Menu
       anchorEl={mobileAnchorEl}
@@ -179,6 +214,7 @@ const MaterialAppBar = () => {
             </MenuItem>
           )
       )}
+      {/* Mobile Sign Out Button */}
       {isAuthenticated() && (
         <>
           <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
@@ -201,12 +237,14 @@ const MaterialAppBar = () => {
   );
 
   return (
+    // The main App Bar wrapper. 'fixed' keeps it at the top of the screen during scrolling.
     <AppBar
       position='fixed'
       elevation={4}
       sx={{ zIndex: theme.zIndex.drawer + 1 }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
+        {/* Logo / Brand Section */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
             edge='start'
@@ -224,7 +262,7 @@ const MaterialAppBar = () => {
             to='/'
             sx={{
               fontWeight: 'bold',
-              textDecoration: 'none',
+              textDecoration: 'none', // Remove underline from link
               color: 'white',
             }}
           >
@@ -232,6 +270,7 @@ const MaterialAppBar = () => {
           </Typography>
         </Box>
 
+        {/* Conditional Rendering: Show Desktop Nav or Mobile Hamburger Icon */}
         {!isMobile ? (
           renderDesktopNav()
         ) : (
@@ -245,6 +284,7 @@ const MaterialAppBar = () => {
         )}
       </Toolbar>
 
+      {/* Render the mobile menu popover only if on a mobile device */}
       {isMobile && renderMobileMenu()}
     </AppBar>
   );

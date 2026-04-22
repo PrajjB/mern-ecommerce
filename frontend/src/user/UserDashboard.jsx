@@ -1,3 +1,9 @@
+// ==========================================
+// user/UserDashboard.jsx - Standard User Dashboard
+// ==========================================
+// This page acts as the control center for registered (non-admin) users.
+// It displays their profile information and fetches/displays their past purchase history.
+
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -16,23 +22,28 @@ import {
   Paper,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { isAuthenticated } from '../auth';
-import { getPurchaseHistory } from './apiUser';
-import moment from 'moment';
+import { isAuthenticated } from '../auth'; // Helper to get user data from localStorage
+import { getPurchaseHistory } from './apiUser'; // API call to get orders for this user
+import moment from 'moment'; // For formatting purchase dates
 import Layout from '../core/Layout';
-import UserSidebar from '../components/UserSidebar';
+import UserSidebar from '../components/UserSidebar'; // Navigation sidebar for user actions
 
 const Dashboard = () => {
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([]); // Stores the user's past orders
   const [loading, setLoading] = useState(true);
 
+  // Destructure the current user's details and JWT token from localStorage
   const {
     user: { _id, name, email, role },
   } = isAuthenticated();
 
   const token = isAuthenticated().token;
 
+  // ==========================================
+  // Fetch Purchase History
+  // ==========================================
   const init = (userId, token) => {
+    // Calls the backend to get all orders where `user` matches this `userId`
     getPurchaseHistory(userId, token).then((data) => {
       if (data.error) {
         console.log(data.error);
@@ -47,6 +58,11 @@ const Dashboard = () => {
     init(_id, token);
   }, [_id, token]);
 
+  // ==========================================
+  // UI Components
+  // ==========================================
+
+  // (Currently not used directly in the return block, sidebar handles links, but kept for reference)
   const UserLinksCard = () => (
     <Card elevation={4} sx={{ borderRadius: 3 }}>
       <CardHeader
@@ -66,6 +82,7 @@ const Dashboard = () => {
     </Card>
   );
 
+  // Renders the User's name, email, and role badge
   const UserInfoCard = () => (
     <Card elevation={4} sx={{ borderRadius: 3, mb: 3 }}>
       <CardHeader
@@ -75,6 +92,7 @@ const Dashboard = () => {
       <Divider />
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          {/* Avatar displays the first letter of the user's name */}
           <Avatar
             sx={{
               bgcolor: 'primary.main',
@@ -110,6 +128,7 @@ const Dashboard = () => {
     </Card>
   );
 
+  // Renders the list of previously purchased products
   const PurchaseHistoryCard = () => (
     <Card elevation={4} sx={{ borderRadius: 3 }}>
       <CardHeader
@@ -124,6 +143,8 @@ const Dashboard = () => {
           <Typography>No purchase history found</Typography>
         ) : (
           <List>
+            {/* The history array contains Order objects. 
+                We map over orders, then map over the products inside each order. */}
             {history.map((h, i) => (
               <React.Fragment key={i}>
                 {h.products.map((p, j) => (

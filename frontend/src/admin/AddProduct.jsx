@@ -1,3 +1,10 @@
+// ==========================================
+// admin/AddProduct.jsx - Create Product Form
+// ==========================================
+// Allows Administrators to add new products to the store.
+// Features a complex form handling file uploads (images) and dynamic dropdowns (categories).
+// Uses JavaScript's `FormData` API to send multipart/form-data to the backend.
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -21,24 +28,29 @@ import {
 import Layout from '../core/Layout';
 import AdminSidebar from '../components/AdminSidebar';
 import { isAuthenticated } from '../auth';
-import { createProduct, getCategories } from './apiAdmin';
+import { createProduct, getCategories } from './apiAdmin'; // API helpers
 
 const AddProduct = () => {
+  // ==========================================
+  // Form State Management
+  // ==========================================
+  // Stores all the input values for the product
   const [values, setValues] = useState({
     name: '',
     description: '',
     price: '',
-    categories: [],
-    category: '',
-    shipping: '',
+    categories: [], // Available categories fetched from the DB for the dropdown
+    category: '', // The specific category ID selected by the user
+    shipping: '', // '0' or '1'
     quantity: '',
-    photo: null,
-    loading: false,
+    photo: null, // The actual image file object
+    loading: false, // Used to show a loading spinner during submission
     error: '',
-    createdProduct: '',
-    formData: new FormData(),
+    createdProduct: '', // Name of the successfully created product for the success message
+    formData: new FormData(), // The object used to compile all data (including the image) for the API
   });
 
+  // Tracks which fields the user has interacted with (used for validation display)
   const [touched, setTouched] = useState({
     name: false,
     description: false,
@@ -51,6 +63,7 @@ const AddProduct = () => {
 
   const { user, token } = isAuthenticated();
 
+  // Destructure for easier access in the JSX
   const {
     name,
     description,
@@ -65,7 +78,10 @@ const AddProduct = () => {
     formData,
   } = values;
 
-  // Form validation
+  // ==========================================
+  // Validation Logic
+  // ==========================================
+  // Checks if all required fields are filled out correctly
   const validate = () => {
     return (
       name.trim() !== '' &&
@@ -74,13 +90,17 @@ const AddProduct = () => {
       category !== '' &&
       shipping !== '' &&
       quantity > 0 &&
-      formData.get('photo') !== null
+      formData.get('photo') !== null // Ensure an image file was attached
     );
   };
 
+  // Boolean flag used to enable/disable the submit button
   const isFormValid = validate();
 
-  // load categories and set form data
+  // ==========================================
+  // Initialization
+  // ==========================================
+  // Fetches available categories from the backend to populate the dropdown
   const init = () => {
     getCategories().then((data) => {
       if (data.error) {
@@ -98,20 +118,29 @@ const AddProduct = () => {
     init();
   }, []);
 
+  // ==========================================
+  // Input Change Handlers
+  // ==========================================
   const handleChange = (name) => (event) => {
+    // If the field is the file input ('photo'), get the file object from `event.target.files[0]`
+    // Otherwise, get the text value from `event.target.value`
     const value = name === 'photo' ? event.target.files[0] : event.target.value;
 
-    // Update formData
+    // We must manually update the FormData object which will be sent to the backend.
+    // Creating a new FormData instance and copying existing data prevents weird state bugs.
     const newFormData = new FormData();
     for (let [key, val] of formData.entries()) {
       if (key !== name) {
         newFormData.set(key, val);
       }
     }
+    
+    // Add the newly changed value to the FormData object
     if (value !== undefined && value !== null) {
       newFormData.set(name, value);
     }
 
+    // Update React State
     setValues({
       ...values,
       [name]: value,
@@ -119,22 +148,30 @@ const AddProduct = () => {
       error: '',
     });
 
-    // Mark field as touched
+    // Mark field as touched for validation
     setTouched({ ...touched, [name]: true });
   };
 
+  // Mark field as touched when the user clicks out of it
   const handleBlur = (field) => () => {
     setTouched({ ...touched, [field]: true });
   };
 
+  // ==========================================
+  // Form Submission
+  // ==========================================
   const clickSubmit = (event) => {
     event.preventDefault();
     setValues({ ...values, error: '', loading: true });
 
+    // Send the compiled `formData` object to the API.
+    // Note: Because `formData` contains a file, we DO NOT set Content-Type to JSON.
+    // The browser automatically sets it to multipart/form-data.
     createProduct(user._id, token, formData).then((data) => {
       if (data.error) {
         setValues({ ...values, error: data.error, loading: false });
       } else {
+        // Reset form upon success
         setValues({
           ...values,
           name: '',
@@ -146,7 +183,7 @@ const AddProduct = () => {
           shipping: '',
           loading: false,
           createdProduct: data.name,
-          formData: new FormData(),
+          formData: new FormData(), // Clear out the FormData object
         });
         setTouched({
           name: false,
@@ -161,8 +198,13 @@ const AddProduct = () => {
     });
   };
 
+  // ==========================================
+  // Render Form UI
+  // ==========================================
   const newPostForm = () => (
     <Box component='form' onSubmit={clickSubmit} sx={{ fullWidth: true }}>
+      
+      {/* File Upload Input */}
       <Box sx={{ mb: 3 }}>
         <Button
           variant='outlined'
@@ -177,7 +219,7 @@ const AddProduct = () => {
             accept='image/*'
             onChange={handleChange('photo')}
             onBlur={handleBlur('photo')}
-            hidden
+            hidden // Hide actual HTML input, style the MUI Button instead
           />
         </Button>
         {touched.photo && !formData.get('photo') && (
@@ -185,6 +227,7 @@ const AddProduct = () => {
         )}
       </Box>
 
+      {/* Standard Text Inputs */}
       <TextField
         label='Product Name'
         variant='outlined'
@@ -206,7 +249,7 @@ const AddProduct = () => {
         fullWidth
         margin='normal'
         multiline
-        rows={4}
+        rows={4} // Makes it a larger text area
         value={description}
         onChange={handleChange('description')}
         onBlur={handleBlur('description')}
@@ -238,6 +281,7 @@ const AddProduct = () => {
         inputProps={{ min: 0, step: 0.01 }}
       />
 
+      {/* Category Dropdown (Populated from DB) */}
       <FormControl
         fullWidth
         margin='normal'
@@ -265,6 +309,7 @@ const AddProduct = () => {
         )}
       </FormControl>
 
+      {/* Shipping Dropdown (Boolean mapping) */}
       <FormControl
         fullWidth
         margin='normal'
@@ -281,6 +326,7 @@ const AddProduct = () => {
           <MenuItem value=''>
             <em>Select shipping option</em>
           </MenuItem>
+          {/* Note: Values are sent as strings '0' and '1', parsed as boolean by backend */}
           <MenuItem value='0'>No</MenuItem>
           <MenuItem value='1'>Yes</MenuItem>
         </Select>
@@ -308,6 +354,7 @@ const AddProduct = () => {
         inputProps={{ min: 0 }}
       />
 
+      {/* Submit Button */}
       <Button
         type='submit'
         variant='contained'
@@ -315,7 +362,7 @@ const AddProduct = () => {
         fullWidth
         size='large'
         sx={{ mt: 3 }}
-        disabled={!isFormValid || loading}
+        disabled={!isFormValid || loading} // Disabled until validation passes
       >
         {loading ? <CircularProgress size={24} /> : 'Create Product'}
       </Button>
@@ -351,12 +398,14 @@ const AddProduct = () => {
                   width: '100%',
                 }}
               >
+                {/* Error Banner */}
                 {error && (
                   <Alert severity='error' sx={{ width: '100%' }}>
                     {error}
                   </Alert>
                 )}
 
+                {/* Success Banner */}
                 {createdProduct && (
                   <Alert severity='success' sx={{ width: '100%' }}>
                     <Typography variant='h6'>
@@ -365,6 +414,7 @@ const AddProduct = () => {
                   </Alert>
                 )}
 
+                {/* Loading Spinner */}
                 {loading && (
                   <Box
                     sx={{
@@ -377,6 +427,7 @@ const AddProduct = () => {
                   </Box>
                 )}
 
+                {/* Render the Form */}
                 {newPostForm()}
               </Box>
             </CardContent>
