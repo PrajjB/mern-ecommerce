@@ -37,6 +37,7 @@ export const addItem = (item = [], count = 0, next = (f) => f) => {
 
     // 4. Save the updated, duplicate-free array back to localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
+    window.dispatchEvent(new Event('cartUpdated'));
     
     // 5. Execute callback (usually to trigger a UI update or redirect)
     next();
@@ -89,6 +90,7 @@ export const updateItem = (productId, count) => {
 
     // Save the updated cart back to localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
+    window.dispatchEvent(new Event('cartUpdated'));
   }
 };
 
@@ -112,6 +114,7 @@ export const removeItem = (productId) => {
 
     // Save the modified cart back to localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
+    window.dispatchEvent(new Event('cartUpdated'));
   }
   return cart; // Return the new cart array so the UI can update immediately
 };
@@ -123,6 +126,7 @@ export const removeItem = (productId) => {
 export const emptyCart = (next) => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('cart');
+    window.dispatchEvent(new Event('cartUpdated'));
     next(); // Callback to trigger UI updates (like showing a success message)
   }
 };

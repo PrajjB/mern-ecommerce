@@ -36,6 +36,7 @@ const OrderSchema = new mongoose.Schema(
     transaction_id: {}, // Transaction ID returned from the payment gateway (e.g., Braintree)
     amount: { type: Number }, // Total amount paid for the order
     address: String, // Delivery address provided by the user
+    receiverName: String, // Name of the receiver for the order
     status: {
       type: String,
       default: 'Not processed',

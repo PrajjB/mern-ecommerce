@@ -78,7 +78,7 @@ const Product = () => {
             {product ? (
               // Use the reusable Card component, but hide the "View Product" button
               // since we are already on the View Product page.
-              <Card product={product} showViewProductButton={false} />
+              <Card product={product} showViewProductButton={false} showAddToCartButton={true} />
             ) : (
               <Typography>Loading product...</Typography>
             )}

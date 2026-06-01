@@ -27,7 +27,7 @@ import { isAuthenticated } from '../auth';
 import { Link } from 'react-router-dom';
 import DropIn from 'braintree-web-drop-in-react'; // Official Braintree React Component
 
-const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
+const Checkout = ({ products, setRun = (f) => f, run = undefined, setCheckoutSuccess }) => {
   // Complex state managing the checkout flow
   const [data, setData] = useState({
     loading: false, // Is a payment currently processing?
@@ -36,6 +36,7 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
     error: '', // Error messages (e.g., card declined)
     instance: {}, // The Braintree DropIn instance used to request the payment nonce
     address: '', // User's delivery address
+    receiverName: '', // User's receiver name
   });
 
   // Extract user details from LocalStorage (if logged in)
@@ -65,6 +66,10 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
     setData({ ...data, address: event.target.value });
   };
 
+  const handleReceiverName = (event) => {
+    setData({ ...data, receiverName: event.target.value });
+  };
+
   // ==========================================
   // Calculate Order Total
   // ==========================================
@@ -78,7 +83,45 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
   // Process Payment & Create Order
   // ==========================================
   const buy = () => {
-    setData({ ...data, loading: true });
+    if (!data.address || !data.receiverName) {
+      setData({ ...data, error: 'Please enter all the delivery details (Address and Receiver Name).' });
+      return;
+    }
+
+    setData({ ...data, loading: true, error: '' });
+    
+    // --------------------------------------------------------
+    // DEMO MODE: Bypass Braintree and directly create the order
+    // --------------------------------------------------------
+    const createOrderData = {
+      products: products,
+      transaction_id: 'demo-tx-' + Date.now(), // Mock ID
+      amount: getTotal(products),
+      address: data.address,
+      receiverName: data.receiverName,
+    };
+
+    createOrder(userId, token, createOrderData)
+      .then(() => {
+        emptyCart(() => {
+          setRun(!run); 
+          setCheckoutSuccess(true);
+          setData({
+            loading: false,
+            success: true,
+            clientToken: data.clientToken,
+            instance: {},
+            address: '',
+            receiverName: '',
+          });
+        });
+      })
+      .catch(() => setData({ ...data, loading: false }));
+
+    /*
+    // ========================================================
+    // ORIGINAL BRAINTREE LOGIC (Commented out for demonstration)
+    // ========================================================
     let nonce;
     
     // 1. Request the payment method nonce from the Braintree DropIn UI
@@ -126,15 +169,30 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
         // Handle errors from the DropIn UI (e.g., user didn't enter a card)
         setData({ ...data, error: error.message });
       });
+    */
   };
 
   // ==========================================
   // Render Checkout UI
   // ==========================================
   const showDropIn = () =>
-    data.clientToken !== null &&
+    // data.clientToken !== null && // Bypassed for Demo
     products.length > 0 && (
       <Box sx={{ mt: 2 }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Payment Gateway (Braintree) is currently bypassed for demonstration purposes.
+        </Alert>
+
+        {/* Receiver Name Input */}
+        <TextField
+          label='Receiver Name'
+          placeholder='Type receiver name...'
+          fullWidth
+          value={data.receiverName}
+          onChange={handleReceiverName}
+          sx={{ mb: 2 }}
+        />
+
         {/* Delivery Address Input */}
         <TextField
           label='Delivery Address'
@@ -147,7 +205,8 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
           sx={{ mb: 2 }}
         />
 
-        {/* Braintree Pre-built UI Component */}
+        {/* Braintree Pre-built UI Component (Commented out for Demo) */}
+        {/*
         <DropIn
           options={{
             authorization: data.clientToken,
@@ -156,6 +215,7 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
           // Save the instance to state so we can call `requestPaymentMethod` later
           onInstance={(instance) => (data.instance = instance)}
         />
+        */}
 
         {/* Pay Button */}
         <Button
@@ -165,7 +225,7 @@ const Checkout = ({ products, setRun = (f) => f, run = undefined }) => {
           fullWidth
           sx={{ mt: 2 }}
         >
-          Pay ${getTotal()}
+          Place Order (Demo) - ${getTotal()}
         </Button>
       </Box>
     );

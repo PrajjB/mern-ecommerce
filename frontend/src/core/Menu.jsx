@@ -49,7 +49,16 @@ const MaterialAppBar = () => {
   
   // State to manage the open/close status of the mobile hamburger menu
   const [mobileAnchorEl, setMobileAnchorEl] = React.useState(null);
+  const [cartItemCount, setCartItemCount] = React.useState(itemTotal());
   const currentPath = window.location.pathname;
+
+  React.useEffect(() => {
+    const handleCartUpdate = () => {
+      setCartItemCount(itemTotal());
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
 
   const isMobileMenuOpen = Boolean(mobileAnchorEl);
 
@@ -89,7 +98,7 @@ const MaterialAppBar = () => {
       label: 'Cart',
       icon: (
         // Badge displays the little red circle with the number of items in the cart
-        <Badge badgeContent={itemTotal()} color='error'>
+        <Badge badgeContent={cartItemCount} color='error'>
           <ShoppingCart />
         </Badge>
       ),

@@ -27,7 +27,7 @@ import MuiAlert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
-import { addItem, updateItem, removeItem } from './cartHelpers';
+import { addItem, updateItem, removeItem, getCart } from './cartHelpers';
 
 // MUI Snackbar Alert wrapper
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -38,14 +38,16 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 const Card = ({
   product, // The actual product object
   showViewProductButton = true, // Should it show the "View Product" button?
-  showAddToCartButton = true, // Should it show the "Add to Cart" button?
+  showAddToCartButton = false, // Should it show the "Add to Cart" button?
   cartUpdate = false, // Should it show the quantity input field? (True on Cart page)
   showRemoveProductButton = false, // Should it show the "Remove" button? (True on Cart page)
   setRun = (f) => f, // Function to trigger a re-render in the parent component
   run = undefined, // State variable from parent to trigger re-renders
 }) => {
   const [redirect, setRedirect] = useState(false);
-  const [count, setCount] = useState(product.count); // Quantity selected
+  const cartItem = getCart().find(p => p._id === product._id);
+  const [count, setCount] = useState(cartItem ? cartItem.count : 1); // Quantity selected
+  const isInCart = !!cartItem;
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
@@ -74,7 +76,7 @@ const Card = ({
     addItem(product, () => {
       setSnackbarMessage(`${product.name} added to cart!`);
       setOpenSnackbar(true); // Show confirmation popup
-      setRun(!run); // Trigger a re-render in the parent to update the Navbar cart count
+      setRun(!run); // Trigger a re-render
     });
   };
 
@@ -132,10 +134,10 @@ const Card = ({
     }
   };
 
-  // Render the Quantity input field (only used on the Cart page)
-  const showCartUpdateOptions = (cartUpdate) => {
+  // Render the Quantity input field
+  const showCartUpdateOptions = (show) => {
     return (
-      cartUpdate && (
+      show && (
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth>
             <InputLabel>Adjust Quantity</InputLabel>
@@ -248,10 +250,10 @@ const Card = ({
             }}
           >
             {showViewButton(showViewProductButton)}
-            {showAddToCartBtn(showAddToCartButton)}
+            {!isInCart && showAddToCartBtn(showAddToCartButton)}
           </Box>
 
-          {showCartUpdateOptions(cartUpdate)}
+          {showCartUpdateOptions(cartUpdate || (showAddToCartButton && isInCart))}
           {showRemoveButton(showRemoveProductButton)}
         </CardContent>
       </CardM>

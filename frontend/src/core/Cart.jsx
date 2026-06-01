@@ -30,6 +30,7 @@ const Cart = () => {
   // `run` is used as a trigger to re-render the cart when an item's quantity 
   // is updated or an item is removed.
   const [run, setRun] = useState(false);
+  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
   // Fetch the cart items from LocalStorage on component mount and whenever `run` changes
   useEffect(() => {
@@ -84,13 +85,43 @@ const Cart = () => {
     </Box>
   );
 
+  // ==========================================
+  // Render Success Message
+  // ==========================================
+  const successMessage = () => (
+    <Box textAlign='center' py={4}>
+      <Typography variant='h4' gutterBottom color='success.main'>
+        Order Placed Successfully! 🎉
+      </Typography>
+      <Typography variant='body1' gutterBottom>
+        Thank you for your purchase. Your products were checked out.
+      </Typography>
+      <Button
+        component={Link}
+        to='/shop'
+        variant='contained'
+        color='primary'
+        size='large'
+        sx={{ mt: 3 }}
+      >
+        Continue Shopping
+      </Button>
+    </Box>
+  );
+
   return (
     <Layout
       title='Shopping Cart'
       description='Manage your cart items. Add remove checkout or continue shopping.'
     >
-      {/* If there are items in the cart, show the Cart grid, else show Empty Message */}
-      {items.length > 0 ? (
+      {/* Conditionally render Success Message, Cart Grid, or Empty Message */}
+      {checkoutSuccess ? (
+        <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+          <Paper elevation={2} sx={{ p: 4 }}>
+            {successMessage()}
+          </Paper>
+        </Box>
+      ) : items.length > 0 ? (
         <Grid container spacing={2}>
           {/* Left Column: Cart Items */}
           <Grid size={{ xs: 12, md: 3 }}>
@@ -111,8 +142,8 @@ const Cart = () => {
               </Typography>
               <Divider sx={{ my: 2 }} />
               
-              {/* Checkout Component handles the Braintree payment integration */}
-              <Checkout products={items} setRun={setRun} run={run} />
+              {/* Checkout Component handles the payment integration */}
+              <Checkout products={items} setRun={setRun} run={run} setCheckoutSuccess={setCheckoutSuccess} />
             </Paper>
           </Grid>
         </Grid>
